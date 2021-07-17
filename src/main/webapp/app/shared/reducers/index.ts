@@ -10,6 +10,12 @@ import activate, { ActivateState } from 'app/modules/account/activate/activate.r
 import password, { PasswordState } from 'app/modules/account/password/password.reducer';
 import settings, { SettingsState } from 'app/modules/account/settings/settings.reducer';
 import passwordReset, { PasswordResetState } from 'app/modules/account/password-reset/password-reset.reducer';
+// prettier-ignore
+import project from 'app/entities/project/project.reducer';
+// prettier-ignore
+import extra from 'app/entities/extra/extra.reducer';
+// prettier-ignore
+import homeType from 'app/entities/home-type/home-type.reducer';
 /* jhipster-needle-add-reducer-import - JHipster will add reducer here */
 
 const rootReducer = {
@@ -22,6 +28,9 @@ const rootReducer = {
   passwordReset,
   password,
   settings,
+  project,
+  extra,
+  homeType,
   /* jhipster-needle-add-reducer-combine - JHipster will add reducer here */
   loadingBar,
 };

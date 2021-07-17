@@ -1,0 +1,38 @@
+entity Project {
+	address String
+    city String
+    rooms Integer
+    price Float
+    floorSpace Float
+    attachment String
+}
+
+entity Extra {
+	extraName String
+}
+
+entity HomeType {
+	typeName String
+}
+
+relationship ManyToMany {
+    Project{extra(extraName)} to Extra{project}
+}
+
+
+// defining multiple OneToMany relationships with comments
+relationship OneToMany {
+    HomeType to Project{homeType}
+}
+
+// Set pagination options
+paginate * with pagination
+
+// Use Data Transfer Objects (DTO)
+dto * with mapstruct
+
+// Set service options to all execpt few
+service all with serviceImpl
+
+// filter
+filter *
