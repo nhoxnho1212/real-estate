@@ -1,5 +1,6 @@
 package com.ou.ret.web.rest;
 
+import com.ou.ret.domain.Project;
 import com.ou.ret.repository.ProjectRepository;
 import com.ou.ret.service.ProjectQueryService;
 import com.ou.ret.service.ProjectService;
@@ -195,5 +196,14 @@ public class ProjectResource {
             .noContent()
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString()))
             .build();
+    }
+
+    @GetMapping("/projects/cities")
+    public ResponseEntity<List<String>> getAllCities() {
+        log.debug("REST request to get Project : {}", "getAllCities");
+
+        List<String> cities = projectService.findAllCities();
+
+        return ResponseEntity.ok().body(cities);
     }
 }

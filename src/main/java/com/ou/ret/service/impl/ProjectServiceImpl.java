@@ -5,7 +5,12 @@ import com.ou.ret.repository.ProjectRepository;
 import com.ou.ret.service.ProjectService;
 import com.ou.ret.service.dto.ProjectDTO;
 import com.ou.ret.service.mapper.ProjectMapper;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -78,5 +83,17 @@ public class ProjectServiceImpl implements ProjectService {
     public void delete(Long id) {
         log.debug("Request to delete Project : {}", id);
         projectRepository.deleteById(id);
+    }
+
+    @Override
+    public List<String> findAllCities() {
+        List<Project> projects = projectRepository.findAll();
+        List<String> cities = new ArrayList<>();
+
+        projects.forEach(element -> {
+            cities.add(element.getCity());
+        });
+
+        return cities.stream().distinct().collect(Collectors.toList());
     }
 }
