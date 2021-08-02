@@ -81,7 +81,10 @@ public class ProjectQueryService extends QueryService<Project> {
      * @return the matching {@link Specification} of the entity.
      */
     protected Specification<Project> createSpecification(ProjectCriteria criteria) {
-        Specification<Project> specification = Specification.where(null);
+        // select without distinct
+//        Specification<Project> specification = Specification.where(null);
+        // select distinct
+        Specification<Project> specification = (root, query, cb) -> { query.distinct(true); return null; };
         if (criteria != null) {
             if (criteria.getId() != null) {
                 specification = specification.and(buildRangeSpecification(criteria.getId(), Project_.id));
