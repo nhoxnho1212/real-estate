@@ -3,9 +3,13 @@ package com.ou.ret.service.dto;
 import com.ou.ret.config.Constants;
 import com.ou.ret.domain.Authority;
 import com.ou.ret.domain.User;
+import org.checkerframework.common.aliasing.qual.Unique;
+import org.hibernate.validator.constraints.UniqueElements;
+
 import java.time.Instant;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.*;
 
 /**
@@ -18,6 +22,7 @@ public class AdminUserDTO {
     @NotBlank
     @Pattern(regexp = Constants.LOGIN_REGEX)
     @Size(min = 1, max = 50)
+    @UniqueElements
     private String login;
 
     @Size(max = 50)
