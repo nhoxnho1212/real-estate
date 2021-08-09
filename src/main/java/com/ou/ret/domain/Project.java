@@ -37,6 +37,21 @@ public class Project implements Serializable {
     @Column(name = "attachment")
     private String attachment;
 
+    @Column(name = "owner")
+    private String owner;
+
+    @Column(name = "owner_desciption")
+    private String ownerDesciption;
+
+    @Column(name = "project_status")
+    private ProjectStatus projectStatus;
+
+    @Column(name = "total_square")
+    private Float totalSquare;
+
+    @Column(name = "desciption")
+    private String desciption;
+
     @ManyToMany
     @JoinTable(
         name = "rel_project__extra",
@@ -49,6 +64,9 @@ public class Project implements Serializable {
     @ManyToOne
     @JsonIgnoreProperties(value = { "projects" }, allowSetters = true)
     private HomeType homeType;
+
+    @ManyToOne
+    private User user;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
     public Long getId() {
@@ -178,6 +196,54 @@ public class Project implements Serializable {
 
     public void setHomeType(HomeType homeType) {
         this.homeType = homeType;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public String getOwner() {
+        return owner;
+    }
+
+    public void setOwner(String owner) {
+        this.owner = owner;
+    }
+
+    public String getOwnerDesciption() {
+        return ownerDesciption;
+    }
+
+    public void setOwnerDesciption(String ownerDesciption) {
+        this.ownerDesciption = ownerDesciption;
+    }
+
+    public ProjectStatus getProjectStatus() {
+        return projectStatus;
+    }
+
+    public void setProjectStatus(ProjectStatus projectStatus) {
+        this.projectStatus = projectStatus;
+    }
+
+    public Float getTotalSquare() {
+        return totalSquare;
+    }
+
+    public void setTotalSquare(Float totalSquare) {
+        this.totalSquare = totalSquare;
+    }
+
+    public String getDesciption() {
+        return desciption;
+    }
+
+    public void setDesciption(String desciption) {
+        this.desciption = desciption;
     }
 
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here

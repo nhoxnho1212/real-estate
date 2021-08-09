@@ -2,7 +2,6 @@ package com.ou.ret.service;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -21,7 +20,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.ou.ret.config.Constants;
-import com.ou.ret.config.EncryptionConfig;
 import com.ou.ret.domain.Authority;
 import com.ou.ret.domain.User;
 import com.ou.ret.repository.AuthorityRepository;
@@ -31,7 +29,6 @@ import com.ou.ret.security.SecurityUtils;
 import com.ou.ret.service.dto.AdminUserDTO;
 import com.ou.ret.service.dto.UserDTO;
 import com.ou.ret.util.EncryptionUtil;
-import com.ou.ret.web.rest.AccountResource;
 
 import tech.jhipster.security.RandomUtil;
 
@@ -117,6 +114,7 @@ public class UserService {
         authorityRepository.findById(AuthoritiesConstants.USER).ifPresent(authorities::add);
         newUser.setAuthorities(authorities);
         userRepository.save(newUser);
+        this.activateRegistration(newUser.getActivationKey());
         log.debug("Created Information for User: {}", newUser);
         return userDTO;
     }
@@ -215,7 +213,6 @@ public class UserService {
 
     /**
      * Update basic information (first name, last name, email, language) for the current user.
-     *
      */
     public void updateUser(AdminUserDTO user, String userLogin) {
         Optional<User> existedUser = userRepository.findOneByLogin(userLogin);
@@ -267,7 +264,7 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public AdminUserDTO getUserWithAuthorities() {
-        Optional<User> currentLoginUser =  SecurityUtils.getCurrentUserLogin().flatMap(userRepository::findOneWithAuthoritiesByLogin);
+        Optional<User> currentLoginUser = SecurityUtils.getCurrentUserLogin().flatMap(userRepository::findOneWithAuthoritiesByLogin);
         if (currentLoginUser.isPresent()) {
             return convertUserToUserDto(currentLoginUser.get());
         }
@@ -293,6 +290,7 @@ public class UserService {
 
     /**
      * Gets a list of all the authorities.
+     *
      * @return a list of all the authorities.
      */
     @Transactional(readOnly = true)
@@ -349,10 +347,10 @@ public class UserService {
         userDto.setEmail(encryptionUtil.decrypt(user.getEmail()));
         userDto.setImageUrl(encryptionUtil.decrypt(user.getImageUrl()));
         userDto.setLastModifiedBy(encryptionUtil.decrypt(user.getLastModifiedBy()));
+        userDto.setCreatedBy(encryptionUtil.decrypt(user.getCreatedBy()));
         // normal properties
         userDto.setId(user.getId());
         userDto.setLangKey(user.getLangKey());
-        userDto.setCreatedBy(user.getCreatedBy());
         userDto.setCreatedDate(user.getCreatedDate());
         userDto.setLastModifiedDate(user.getLastModifiedDate());
         userDto.setAuthorities(user.getAuthorities().stream().map(Authority::getName).collect(Collectors.toSet()));
