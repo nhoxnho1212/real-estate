@@ -1,6 +1,27 @@
 package com.ou.ret.service;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.ou.ret.config.Constants;
+import com.ou.ret.config.EncryptionConfig;
 import com.ou.ret.domain.Authority;
 import com.ou.ret.domain.User;
 import com.ou.ret.repository.AuthorityRepository;
@@ -9,18 +30,9 @@ import com.ou.ret.security.AuthoritiesConstants;
 import com.ou.ret.security.SecurityUtils;
 import com.ou.ret.service.dto.AdminUserDTO;
 import com.ou.ret.service.dto.UserDTO;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.*;
-import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import com.ou.ret.util.EncryptionUtil;
+import com.ou.ret.web.rest.AccountResource;
+
 import tech.jhipster.security.RandomUtil;
 
 /**
@@ -37,11 +49,13 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     private final AuthorityRepository authorityRepository;
+    private final EncryptionUtil encryptionUtil;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthorityRepository authorityRepository) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthorityRepository authorityRepository, EncryptionUtil encryptionUtil) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authorityRepository = authorityRepository;
+        this.encryptionUtil = encryptionUtil;
     }
 
     public Optional<User> activateRegistration(String key) {
@@ -56,7 +70,7 @@ public class UserService {
                     log.debug("Activated user: {}", user);
                     return user;
                 }
-            );
+                );
     }
 
     public Optional<User> completePasswordReset(String newPassword, String key) {
@@ -71,7 +85,7 @@ public class UserService {
                     user.setResetDate(null);
                     return user;
                 }
-            );
+                );
     }
 
     public Optional<User> requestPasswordReset(String mail) {
@@ -84,41 +98,16 @@ public class UserService {
                     user.setResetDate(Instant.now());
                     return user;
                 }
-            );
+                );
     }
 
-    public User registerUser(AdminUserDTO userDTO, String password) {
-        userRepository
-            .findOneByLogin(userDTO.getLogin().toLowerCase())
-            .ifPresent(
-                existingUser -> {
-                    boolean removed = removeNonActivatedUser(existingUser);
-                    if (!removed) {
-                        throw new UsernameAlreadyUsedException();
-                    }
-                }
-            );
-        userRepository
-            .findOneByEmailIgnoreCase(userDTO.getEmail())
-            .ifPresent(
-                existingUser -> {
-                    boolean removed = removeNonActivatedUser(existingUser);
-                    if (!removed) {
-                        throw new EmailAlreadyUsedException();
-                    }
-                }
-            );
-        User newUser = new User();
+    public AdminUserDTO registerUser(AdminUserDTO userDTO, String password) {
+        assertConflictingUser(userDTO);
+
+        User newUser = convertUserDtoToUser(userDTO);
         String encryptedPassword = passwordEncoder.encode(password);
-        newUser.setLogin(userDTO.getLogin().toLowerCase());
         // new user gets initially a generated password
         newUser.setPassword(encryptedPassword);
-        newUser.setFirstName(userDTO.getFirstName());
-        newUser.setLastName(userDTO.getLastName());
-        if (userDTO.getEmail() != null) {
-            newUser.setEmail(userDTO.getEmail().toLowerCase());
-        }
-        newUser.setImageUrl(userDTO.getImageUrl());
         newUser.setLangKey(userDTO.getLangKey());
         // new user is not active
         newUser.setActivated(false);
@@ -129,7 +118,7 @@ public class UserService {
         newUser.setAuthorities(authorities);
         userRepository.save(newUser);
         log.debug("Created Information for User: {}", newUser);
-        return newUser;
+        return userDTO;
     }
 
     private boolean removeNonActivatedUser(User existingUser) {
@@ -209,7 +198,7 @@ public class UserService {
                     log.debug("Changed Information for User: {}", user);
                     return user;
                 }
-            )
+                )
             .map(AdminUserDTO::new);
     }
 
@@ -221,34 +210,26 @@ public class UserService {
                     userRepository.delete(user);
                     log.debug("Deleted User: {}", user);
                 }
-            );
+                      );
     }
 
     /**
      * Update basic information (first name, last name, email, language) for the current user.
      *
-     * @param firstName first name of user.
-     * @param lastName  last name of user.
-     * @param email     email id of user.
-     * @param langKey   language key.
-     * @param imageUrl  image URL of user.
      */
-    public void updateUser(String firstName, String lastName, String email, String langKey, String imageUrl) {
-        SecurityUtils
-            .getCurrentUserLogin()
-            .flatMap(userRepository::findOneByLogin)
-            .ifPresent(
-                user -> {
-                    user.setFirstName(firstName);
-                    user.setLastName(lastName);
-                    if (email != null) {
-                        user.setEmail(email.toLowerCase());
-                    }
-                    user.setLangKey(langKey);
-                    user.setImageUrl(imageUrl);
-                    log.debug("Changed Information for User: {}", user);
-                }
-            );
+    public void updateUser(AdminUserDTO user, String userLogin) {
+        Optional<User> existedUser = userRepository.findOneByLogin(userLogin);
+        if (existedUser.isPresent()) {
+            Optional<User> userUsingCurrentEmail = userRepository.findOneByEmailIgnoreCase(existedUser.get().getEmail());
+            if (userUsingCurrentEmail.isPresent() && !userUsingCurrentEmail.get().getId().equals(existedUser.get().getId())) {
+                throw new EmailAlreadyUsedException();
+            }
+            convertUserDtoToUser(user, existedUser.get());
+            userRepository.save(existedUser.get());
+        } else {
+            throw new UsernameNotFoundException("Username not found.");
+        }
+
     }
 
     @Transactional
@@ -266,7 +247,7 @@ public class UserService {
                     user.setPassword(encryptedPassword);
                     log.debug("Changed password for User: {}", user);
                 }
-            );
+                      );
     }
 
     @Transactional(readOnly = true)
@@ -285,8 +266,12 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public Optional<User> getUserWithAuthorities() {
-        return SecurityUtils.getCurrentUserLogin().flatMap(userRepository::findOneWithAuthoritiesByLogin);
+    public AdminUserDTO getUserWithAuthorities() {
+        Optional<User> currentLoginUser =  SecurityUtils.getCurrentUserLogin().flatMap(userRepository::findOneWithAuthoritiesByLogin);
+        if (currentLoginUser.isPresent()) {
+            return convertUserToUserDto(currentLoginUser.get());
+        }
+        return null;
     }
 
     /**
@@ -303,7 +288,7 @@ public class UserService {
                     log.debug("Deleting not activated user {}", user.getLogin());
                     userRepository.delete(user);
                 }
-            );
+                    );
     }
 
     /**
@@ -313,5 +298,64 @@ public class UserService {
     @Transactional(readOnly = true)
     public List<String> getAuthorities() {
         return authorityRepository.findAll().stream().map(Authority::getName).collect(Collectors.toList());
+    }
+
+    private void assertConflictingUser(AdminUserDTO userDTO) {
+        String username = encryptionUtil.encrypt(userDTO.getLogin().toLowerCase());
+        String email = encryptionUtil.encrypt(userDTO.getEmail().toLowerCase());
+        userRepository
+            .findOneByLogin(username)
+            .ifPresent(existingUser -> {
+                boolean removed = removeNonActivatedUser(existingUser);
+                if (!removed) {
+                    throw new UsernameAlreadyUsedException();
+                }
+            });
+
+        userRepository
+            .findOneByEmailIgnoreCase(email)
+            .ifPresent(existingUser -> {
+                boolean removed = removeNonActivatedUser(existingUser);
+                if (!removed) {
+                    throw new EmailAlreadyUsedException();
+                }
+            });
+    }
+
+    public User convertUserDtoToUser(AdminUserDTO userDto) {
+        User user = new User();
+        user.setLogin(encryptionUtil.encrypt(userDto.getLogin().toLowerCase()));
+        user.setFirstName(encryptionUtil.encrypt(userDto.getFirstName()));
+        user.setLastName(encryptionUtil.encrypt(userDto.getLastName()));
+        user.setEmail(encryptionUtil.encrypt(Optional.of(userDto.getEmail().toLowerCase()).orElse(StringUtils.EMPTY)));
+        user.setImageUrl(encryptionUtil.encrypt(userDto.getImageUrl()));
+        return user;
+    }
+
+    public void convertUserDtoToUser(AdminUserDTO userDto, User user) {
+        user.setLogin(encryptionUtil.encrypt(userDto.getLogin().toLowerCase()));
+        user.setFirstName(encryptionUtil.encrypt(userDto.getFirstName()));
+        user.setLastName(encryptionUtil.encrypt(userDto.getLastName()));
+        user.setEmail(encryptionUtil.encrypt(Optional.of(userDto.getEmail().toLowerCase()).orElse(StringUtils.EMPTY)));
+        user.setImageUrl(encryptionUtil.encrypt(userDto.getImageUrl()));
+    }
+
+    public AdminUserDTO convertUserToUserDto(User user) {
+        AdminUserDTO userDto = new AdminUserDTO();
+        // encryption properties
+        userDto.setLogin(encryptionUtil.decrypt(user.getLogin()));
+        userDto.setFirstName(encryptionUtil.decrypt(user.getFirstName()));
+        userDto.setLastName(encryptionUtil.decrypt(user.getLastName()));
+        userDto.setEmail(encryptionUtil.decrypt(user.getEmail()));
+        userDto.setImageUrl(encryptionUtil.decrypt(user.getImageUrl()));
+        userDto.setLastModifiedBy(encryptionUtil.decrypt(user.getLastModifiedBy()));
+        // normal properties
+        userDto.setId(user.getId());
+        userDto.setLangKey(user.getLangKey());
+        userDto.setCreatedBy(user.getCreatedBy());
+        userDto.setCreatedDate(user.getCreatedDate());
+        userDto.setLastModifiedDate(user.getLastModifiedDate());
+        userDto.setAuthorities(user.getAuthorities().stream().map(Authority::getName).collect(Collectors.toSet()));
+        return userDto;
     }
 }

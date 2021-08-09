@@ -29,9 +29,7 @@ public class User extends AbstractAuditingEntity implements Serializable {
     private Long id;
 
     @NotNull
-    @Pattern(regexp = Constants.LOGIN_REGEX)
-    @Size(min = 1, max = 50)
-    @Column(length = 50, unique = true, nullable = false)
+    @Column(length = 44, unique = true, nullable = false)
     private String login;
 
     @JsonIgnore
@@ -40,17 +38,16 @@ public class User extends AbstractAuditingEntity implements Serializable {
     @Column(name = "password_hash", length = 60, nullable = false)
     private String password;
 
-    @Size(max = 50)
-    @Column(name = "first_name", length = 50)
+
+    @Column(name = "first_name", length = 44)
     private String firstName;
 
-    @Size(max = 50)
-    @Column(name = "last_name", length = 50)
+
+    @Column(name = "last_name", length = 44)
     private String lastName;
 
-    @Email
-    @Size(min = 5, max = 254)
-    @Column(length = 254, unique = true)
+    @Size(min = 44, max = 44)
+    @Column(length = 44, unique = true)
     private String email;
 
     @NotNull
@@ -61,8 +58,8 @@ public class User extends AbstractAuditingEntity implements Serializable {
     @Column(name = "lang_key", length = 10)
     private String langKey;
 
-    @Size(max = 256)
-    @Column(name = "image_url", length = 256)
+
+    @Column(name = "image_url", length = 44)
     private String imageUrl;
 
     @Size(max = 20)
@@ -102,7 +99,7 @@ public class User extends AbstractAuditingEntity implements Serializable {
 
     // Lowercase the login before saving it in database
     public void setLogin(String login) {
-        this.login = StringUtils.lowerCase(login, Locale.ENGLISH);
+        this.login = login;
     }
 
     public String getPassword() {
