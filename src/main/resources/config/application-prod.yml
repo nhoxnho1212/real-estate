@@ -154,3 +154,7 @@ jhipster:
 # ===================================================================
 
 # application:
+encryption:
+  aes:
+    secretKey: NgQmL0Fxjx
+    salt: OEkp59ouzV
