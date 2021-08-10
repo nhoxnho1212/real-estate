@@ -29,6 +29,9 @@ import com.ou.ret.security.SecurityUtils;
 import com.ou.ret.service.dto.AdminUserDTO;
 import com.ou.ret.service.dto.UserDTO;
 import com.ou.ret.util.EncryptionUtil;
+import com.ou.ret.web.rest.errors.BadRequestAlertException;
+import com.ou.ret.web.rest.errors.LoginAlreadyUsedException;
+import com.ou.ret.web.rest.errors.PhoneNumberAlreadyUsedException;
 
 import tech.jhipster.security.RandomUtil;
 
@@ -128,15 +131,19 @@ public class UserService {
         return true;
     }
 
-    public User createUser(AdminUserDTO userDTO) {
-        User user = new User();
-        user.setLogin(userDTO.getLogin().toLowerCase());
-        user.setFirstName(userDTO.getFirstName());
-        user.setLastName(userDTO.getLastName());
-        if (userDTO.getEmail() != null) {
-            user.setEmail(userDTO.getEmail().toLowerCase());
+    public AdminUserDTO createUser(AdminUserDTO userDTO) {
+        if (userDTO.getId() != null) {
+            throw new BadRequestAlertException("A new user cannot already have an ID", "userManagement", "idexists");
+            // Lowercase the user login before comparing with database
         }
-        user.setImageUrl(userDTO.getImageUrl());
+        if (userRepository.findOneByLogin(encryptionUtil.encrypt(userDTO.getLogin().toLowerCase())).isPresent()) {
+            throw new LoginAlreadyUsedException();
+        } else if (userRepository.findOneByEmailIgnoreCase(encryptionUtil.encrypt(userDTO.getEmail())).isPresent()) {
+            throw new EmailAlreadyUsedException();
+        } else if (userRepository.findOneByPhoneNumber(encryptionUtil.encrypt(userDTO.getPhoneNumber())).isPresent()) {
+            throw new PhoneNumberAlreadyUsedException();
+        }
+        User user = convertUserDtoToUser(userDTO);
         if (userDTO.getLangKey() == null) {
             user.setLangKey(Constants.DEFAULT_LANGUAGE); // default language
         } else {
@@ -159,7 +166,7 @@ public class UserService {
         }
         userRepository.save(user);
         log.debug("Created Information for User: {}", user);
-        return user;
+        return convertUserToUserDto(user);
     }
 
     /**
@@ -169,40 +176,44 @@ public class UserService {
      * @return updated user.
      */
     public Optional<AdminUserDTO> updateUser(AdminUserDTO userDTO) {
+        log.debug("REST request to update User : {}", userDTO);
+        Optional<User> existingUser = userRepository.findOneByEmailIgnoreCase(encryptionUtil.encrypt(userDTO.getEmail()));
+        if (existingUser.isPresent() && (!existingUser.get().getId().equals(userDTO.getId()))) {
+            throw new EmailAlreadyUsedException();
+        }
+        existingUser = userRepository.findOneByLogin(encryptionUtil.encrypt(userDTO.getLogin().toLowerCase()));
+        if (existingUser.isPresent() && (!existingUser.get().getId().equals(userDTO.getId()))) {
+            throw new LoginAlreadyUsedException();
+        }
+
+        existingUser = userRepository.findOneByPhoneNumber(encryptionUtil.encrypt(userDTO.getPhoneNumber()));
+        if (existingUser.isPresent() && (!existingUser.get().getId().equals(userDTO.getId()))) {
+            throw new PhoneNumberAlreadyUsedException();
+        }
         return Optional
             .of(userRepository.findById(userDTO.getId()))
             .filter(Optional::isPresent)
             .map(Optional::get)
-            .map(
-                user -> {
-                    user.setLogin(userDTO.getLogin().toLowerCase());
-                    user.setFirstName(userDTO.getFirstName());
-                    user.setLastName(userDTO.getLastName());
-                    if (userDTO.getEmail() != null) {
-                        user.setEmail(userDTO.getEmail().toLowerCase());
-                    }
-                    user.setImageUrl(userDTO.getImageUrl());
-                    user.setActivated(userDTO.isActivated());
-                    user.setLangKey(userDTO.getLangKey());
-                    Set<Authority> managedAuthorities = user.getAuthorities();
-                    managedAuthorities.clear();
-                    userDTO
-                        .getAuthorities()
-                        .stream()
-                        .map(authorityRepository::findById)
-                        .filter(Optional::isPresent)
-                        .map(Optional::get)
-                        .forEach(managedAuthorities::add);
-                    log.debug("Changed Information for User: {}", user);
-                    return user;
-                }
-                )
-            .map(AdminUserDTO::new);
+            .map(user -> {
+                convertUserDtoToUser(userDTO, user);
+                Set<Authority> managedAuthorities = user.getAuthorities();
+                managedAuthorities.clear();
+                userDTO
+                    .getAuthorities()
+                    .stream()
+                    .map(authorityRepository::findById)
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .forEach(managedAuthorities::add);
+                log.debug("Changed Information for User: {}", user);
+                return user;
+            })
+            .map(this::convertUserToUserDto);
     }
 
     public void deleteUser(String login) {
         userRepository
-            .findOneByLogin(login)
+            .findOneByLogin(encryptionUtil.encrypt(login))
             .ifPresent(
                 user -> {
                     userRepository.delete(user);
@@ -249,7 +260,7 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public Page<AdminUserDTO> getAllManagedUsers(Pageable pageable) {
-        return userRepository.findAll(pageable).map(AdminUserDTO::new);
+        return userRepository.findAll(pageable).map(this::convertUserToUserDto);
     }
 
     @Transactional(readOnly = true)
@@ -258,8 +269,12 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public Optional<User> getUserWithAuthoritiesByLogin(String login) {
-        return userRepository.findOneWithAuthoritiesByLogin(login);
+    public AdminUserDTO getUserWithAuthoritiesByLogin(String login) {
+        Optional<User> user = userRepository.findOneWithAuthoritiesByLogin(encryptionUtil.encrypt(login));
+        if (user.isPresent()) {
+            return user.map(this::convertUserToUserDto).get();
+        }
+        return null;
     }
 
     @Transactional(readOnly = true)
@@ -322,11 +337,7 @@ public class UserService {
 
     public User convertUserDtoToUser(AdminUserDTO userDto) {
         User user = new User();
-        user.setLogin(encryptionUtil.encrypt(userDto.getLogin().toLowerCase()));
-        user.setFirstName(encryptionUtil.encrypt(userDto.getFirstName()));
-        user.setLastName(encryptionUtil.encrypt(userDto.getLastName()));
-        user.setEmail(encryptionUtil.encrypt(Optional.of(userDto.getEmail().toLowerCase()).orElse(StringUtils.EMPTY)));
-        user.setImageUrl(encryptionUtil.encrypt(userDto.getImageUrl()));
+        convertUserDtoToUser(userDto, user);
         return user;
     }
 
@@ -336,6 +347,7 @@ public class UserService {
         user.setLastName(encryptionUtil.encrypt(userDto.getLastName()));
         user.setEmail(encryptionUtil.encrypt(Optional.of(userDto.getEmail().toLowerCase()).orElse(StringUtils.EMPTY)));
         user.setImageUrl(encryptionUtil.encrypt(userDto.getImageUrl()));
+        user.setPhoneNumber(encryptionUtil.encrypt(userDto.getPhoneNumber()));
     }
 
     public AdminUserDTO convertUserToUserDto(User user) {
@@ -348,6 +360,7 @@ public class UserService {
         userDto.setImageUrl(encryptionUtil.decrypt(user.getImageUrl()));
         userDto.setLastModifiedBy(encryptionUtil.decrypt(user.getLastModifiedBy()));
         userDto.setCreatedBy(encryptionUtil.decrypt(user.getCreatedBy()));
+        userDto.setPhoneNumber(encryptionUtil.decrypt(user.getPhoneNumber()));
         // normal properties
         userDto.setId(user.getId());
         userDto.setLangKey(user.getLangKey());

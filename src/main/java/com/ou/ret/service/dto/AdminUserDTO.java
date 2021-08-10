@@ -52,6 +52,9 @@ public class AdminUserDTO {
 
     private Set<String> authorities;
 
+    @NotBlank
+    private String phoneNumber;
+
     public AdminUserDTO() {
         // Empty constructor needed for Jackson.
     }
@@ -193,5 +196,13 @@ public class AdminUserDTO {
             ", lastModifiedDate=" + lastModifiedDate +
             ", authorities=" + authorities +
             "}";
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 }

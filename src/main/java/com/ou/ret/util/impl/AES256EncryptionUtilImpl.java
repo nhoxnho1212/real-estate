@@ -12,6 +12,7 @@ import java.util.Base64;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.Cacheable;
 
 import com.ou.ret.util.EncryptionUtil;
 
@@ -31,6 +32,7 @@ public class AES256EncryptionUtilImpl implements EncryptionUtil {
     }
 
     @Override
+    @Cacheable(value = "encrypt", key = "#payload")
     public String encrypt(String payload) {
         try {
             long startTimestamp = System.currentTimeMillis();
@@ -57,6 +59,7 @@ public class AES256EncryptionUtilImpl implements EncryptionUtil {
     }
 
     @Override
+    @Cacheable(value = "decrypt", key = "#payload")
     public String decrypt(String payload) {
         try {
             long startTimestamp = System.currentTimeMillis();
