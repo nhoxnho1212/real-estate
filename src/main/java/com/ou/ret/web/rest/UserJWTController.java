@@ -3,6 +3,7 @@ package com.ou.ret.web.rest;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.ou.ret.security.jwt.JWTFilter;
 import com.ou.ret.security.jwt.TokenProvider;
+import com.ou.ret.util.EncryptionUtil;
 import com.ou.ret.web.rest.vm.LoginVM;
 import javax.validation.Valid;
 import org.springframework.http.HttpHeaders;
@@ -24,16 +25,18 @@ public class UserJWTController {
     private final TokenProvider tokenProvider;
 
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
+    private EncryptionUtil encryptionUtil;
 
-    public UserJWTController(TokenProvider tokenProvider, AuthenticationManagerBuilder authenticationManagerBuilder) {
+    public UserJWTController(TokenProvider tokenProvider, AuthenticationManagerBuilder authenticationManagerBuilder, EncryptionUtil encryptionUtil) {
         this.tokenProvider = tokenProvider;
         this.authenticationManagerBuilder = authenticationManagerBuilder;
+        this.encryptionUtil = encryptionUtil;
     }
 
     @PostMapping("/authenticate")
     public ResponseEntity<JWTToken> authorize(@Valid @RequestBody LoginVM loginVM) {
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-            loginVM.getUsername(),
+            encryptionUtil.encrypt(loginVM.getUsername()),
             loginVM.getPassword()
         );
 
