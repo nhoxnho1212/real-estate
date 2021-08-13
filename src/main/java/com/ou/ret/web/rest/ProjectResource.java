@@ -2,6 +2,7 @@ package com.ou.ret.web.rest;
 
 import com.ou.ret.domain.Project;
 import com.ou.ret.repository.ProjectRepository;
+import com.ou.ret.security.AuthoritiesConstants;
 import com.ou.ret.service.ProjectQueryService;
 import com.ou.ret.service.ProjectService;
 import com.ou.ret.service.criteria.ProjectCriteria;
@@ -20,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tech.jhipster.web.util.HeaderUtil;
@@ -189,6 +191,7 @@ public class ProjectResource {
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/projects/{id}")
+    @PreAuthorize("hasAuthority(\"" + AuthoritiesConstants.ADMIN + "\")")
     public ResponseEntity<Void> deleteProject(@PathVariable Long id) {
         log.debug("REST request to delete Project : {}", id);
         projectService.delete(id);
