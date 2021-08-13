@@ -9,6 +9,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.spec.KeySpec;
 import java.util.Base64;
+import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,8 +33,12 @@ public class AES256EncryptionUtilImpl implements EncryptionUtil {
     }
 
     @Override
-    @Cacheable(value = "encrypt", key = "#payload")
+    @Cacheable(value = "encrypt", key = "#payload", condition = "#payload != null")
     public String encrypt(String payload) {
+        if (Objects.isNull(payload)) {
+            return null;
+        }
+
         try {
             long startTimestamp = System.currentTimeMillis();
             byte[] iv = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -59,8 +64,11 @@ public class AES256EncryptionUtilImpl implements EncryptionUtil {
     }
 
     @Override
-    @Cacheable(value = "decrypt", key = "#payload")
+    @Cacheable(value = "decrypt", key = "#payload",condition = "#payload != null")
     public String decrypt(String payload) {
+        if (Objects.isNull(payload)) {
+            return null;
+        }
         try {
             long startTimestamp = System.currentTimeMillis();
 
