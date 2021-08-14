@@ -8,10 +8,11 @@ import org.mapstruct.*;
 /**
  * Mapper for the entity {@link Project} and its DTO {@link ProjectDTO}.
  */
-@Mapper(componentModel = "spring", uses = { ExtraMapper.class, HomeTypeMapper.class })
+@Mapper(componentModel = "spring", uses = { ExtraMapper.class, HomeTypeMapper.class, UserMapper.class })
 public interface ProjectMapper extends EntityMapper<ProjectDTO, Project> {
     @Mapping(target = "extras", source = "extras", qualifiedByName = "extraNameSet")
     @Mapping(target = "homeType", source = "homeType", qualifiedByName = "id")
+    @Mapping(target = "userDTO", source = "user")
     ProjectDTO toDto(Project s);
 
     @Mapping(target = "removeExtra", ignore = true)

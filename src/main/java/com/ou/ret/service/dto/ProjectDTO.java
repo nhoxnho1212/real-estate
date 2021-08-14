@@ -1,5 +1,10 @@
 package com.ou.ret.service.dto;
 
+import com.ou.ret.domain.ProjectStatus;
+import com.ou.ret.domain.User;
+
+import javax.persistence.Column;
+import javax.persistence.ManyToOne;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Objects;
@@ -27,6 +32,18 @@ public class ProjectDTO implements Serializable {
     private Set<ExtraDTO> extras = new HashSet<>();
 
     private HomeTypeDTO homeType;
+
+    private String owner;
+
+    private String ownerDesciption;
+
+    private ProjectStatus projectStatus;
+
+    private Float totalSquare;
+
+    private String desciption;
+
+    private UserDTO userDTO;
 
     public Long getId() {
         return id;
@@ -98,6 +115,54 @@ public class ProjectDTO implements Serializable {
 
     public void setHomeType(HomeTypeDTO homeType) {
         this.homeType = homeType;
+    }
+
+    public String getOwner() {
+        return owner;
+    }
+
+    public void setOwner(String owner) {
+        this.owner = owner;
+    }
+
+    public String getOwnerDesciption() {
+        return ownerDesciption;
+    }
+
+    public void setOwnerDesciption(String ownerDesciption) {
+        this.ownerDesciption = ownerDesciption;
+    }
+
+    public ProjectStatus getProjectStatus() {
+        return projectStatus;
+    }
+
+    public void setProjectStatus(ProjectStatus projectStatus) {
+        this.projectStatus = projectStatus;
+    }
+
+    public Float getTotalSquare() {
+        return totalSquare;
+    }
+
+    public void setTotalSquare(Float totalSquare) {
+        this.totalSquare = totalSquare;
+    }
+
+    public String getDesciption() {
+        return desciption;
+    }
+
+    public void setDesciption(String desciption) {
+        this.desciption = desciption;
+    }
+
+    public UserDTO getUserDTO() {
+        return userDTO;
+    }
+
+    public void setUserDTO(UserDTO userDTO) {
+        this.userDTO = userDTO;
     }
 
     @Override
