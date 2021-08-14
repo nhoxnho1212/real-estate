@@ -11,7 +11,7 @@ import org.mapstruct.*;
 @Mapper(componentModel = "spring", uses = { ExtraMapper.class, HomeTypeMapper.class, UserMapper.class })
 public interface ProjectMapper extends EntityMapper<ProjectDTO, Project> {
     @Mapping(target = "extras", source = "extras", qualifiedByName = "extraNameSet")
-    @Mapping(target = "homeType", source = "homeType", qualifiedByName = "id")
+    @Mapping(target = "homeType", source = "homeType")
     @Mapping(target = "userDTO", source = "user")
     ProjectDTO toDto(Project s);
 
