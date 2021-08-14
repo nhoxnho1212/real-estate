@@ -43,7 +43,7 @@ VALUES
 	('371 Nguyen Kiem', 'none', 'HCM', 'desciption...', '200', 'City World', 'This  is a big company...', '9000', '1', '1000', '90000', 1, 2),
 	('97 Vo Van Tan', 'none', 'Da Lat', 'desciption...', '150', 'Deve', 'This  is a big company...', '3306', '2', '990', '10000', 2, 1),
     ('411 Nguyen Kiem', 'none', 'HCM', 'desciption...', '310', 'Thien', 'This  is a big company...', '9000', '2', '910', '70011', 1, 2),
-	('122 Vo Van Tan', 'none', 'Vung Tau', 'desciption...', '196', 'CenZe', 'This  is a big company...', '3306', '3', '1010', '19000', 1, 1),
+	('122 Vo Van Tan', 'none', 'Vung Tau', 'desciption...', '196', 'CenZe', 'This  is a big company...', '3306', '0', '1010', '19000', 1, 1),
     ('121 Nguyen Kiem', 'none', 'Quy Nhon', 'desciption...', '121', 'Thier', 'This  is a big company...', '9000', '1', '1212', '80000', 5, 1)
 	;
 

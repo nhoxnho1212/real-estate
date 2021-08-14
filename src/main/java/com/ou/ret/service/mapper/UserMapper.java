@@ -4,28 +4,41 @@ import com.ou.ret.domain.Authority;
 import com.ou.ret.domain.User;
 import com.ou.ret.service.dto.AdminUserDTO;
 import com.ou.ret.service.dto.UserDTO;
-import java.util.*;
-import java.util.stream.Collectors;
+import com.ou.ret.util.EncryptionUtil;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Mapper for the entity {@link User} and its DTO called {@link UserDTO}.
- *
+ * <p>
  * Normal mappers are generated using MapStruct, this one is hand-coded as MapStruct
  * support is still in beta, and requires a manual step with an IDE.
  */
 @Service
 public class UserMapper {
+    private final EncryptionUtil encryptionUtil;
+
+    @Autowired
+    public UserMapper(EncryptionUtil encryptionUtil) {
+        this.encryptionUtil = encryptionUtil;
+    }
 
     public List<UserDTO> usersToUserDTOs(List<User> users) {
         return users.stream().filter(Objects::nonNull).map(this::userToUserDTO).collect(Collectors.toList());
     }
 
     public UserDTO userToUserDTO(User user) {
-        return new UserDTO(user);
+        return new UserDTO(user, encryptionUtil);
     }
 
     public List<AdminUserDTO> usersToAdminUserDTOs(List<User> users) {
@@ -72,7 +85,7 @@ public class UserMapper {
                             auth.setName(string);
                             return auth;
                         }
-                    )
+                        )
                     .collect(Collectors.toSet());
         }
 

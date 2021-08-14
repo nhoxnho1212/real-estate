@@ -1,11 +1,7 @@
 package com.ou.ret.service.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.ou.ret.domain.User;
 import com.ou.ret.util.EncryptionUtil;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import javax.persistence.Column;
 
 /**
  * A DTO representing a user, with only the public attributes.
@@ -33,6 +29,15 @@ public class UserDTO {
         this.id = user.getId();
         // Customize it here if you need, or not, firstName/lastName/etc
         this.login = user.getLogin();
+    }
+
+    public UserDTO(User user, EncryptionUtil encryptionUtil) {
+        this.firstName = encryptionUtil.decrypt(user.getFirstName());
+        this.lastName = encryptionUtil.decrypt(user.getLastName());
+        this.phoneNumber = encryptionUtil.decrypt(user.getPhoneNumber());
+        this.id = user.getId();
+        // Customize it here if you need, or not, firstName/lastName/etc
+        this.login = encryptionUtil.decrypt(user.getLogin());
     }
 
     public Long getId() {
