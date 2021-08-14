@@ -35,7 +35,7 @@ public class User extends AbstractAuditingEntity implements Serializable {
     private Long id;
 
     @NotNull
-    @Column(length = 44, unique = true, nullable = false)
+    @Column(length = 88, unique = true, nullable = false)
     private String login;
 
     @JsonIgnore
@@ -45,15 +45,14 @@ public class User extends AbstractAuditingEntity implements Serializable {
     private String password;
 
 
-    @Column(name = "first_name", length = 44)
+    @Column(name = "first_name", length = 88)
     private String firstName;
 
 
-    @Column(name = "last_name", length = 44)
+    @Column(name = "last_name", length = 88)
     private String lastName;
 
-    @Size(min = 44, max = 44)
-    @Column(length = 44, unique = true)
+    @Column(length = 344, unique = true)
     private String email;
 
     @NotNull
@@ -65,7 +64,7 @@ public class User extends AbstractAuditingEntity implements Serializable {
     private String langKey;
 
 
-    @Column(name = "image_url", length = 44)
+    @Column(name = "image_url", length = 88)
     private String imageUrl;
 
     @Size(max = 20)
