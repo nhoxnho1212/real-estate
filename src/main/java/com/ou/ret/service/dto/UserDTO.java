@@ -1,6 +1,7 @@
 package com.ou.ret.service.dto;
 
 import com.ou.ret.domain.User;
+import com.ou.ret.util.EncryptionUtil;
 
 /**
  * A DTO representing a user, with only the public attributes.
@@ -11,14 +12,32 @@ public class UserDTO {
 
     private String login;
 
+    private String firstName;
+
+    private String lastName;
+
+    private String phoneNumber;
+
     public UserDTO() {
         // Empty constructor needed for Jackson.
     }
 
     public UserDTO(User user) {
+        this.firstName = user.getFirstName();
+        this.lastName = user.getLastName();
+        this.phoneNumber = user.getPhoneNumber();
         this.id = user.getId();
         // Customize it here if you need, or not, firstName/lastName/etc
         this.login = user.getLogin();
+    }
+
+    public UserDTO(User user, EncryptionUtil encryptionUtil) {
+        this.firstName = encryptionUtil.decrypt(user.getFirstName());
+        this.lastName = encryptionUtil.decrypt(user.getLastName());
+        this.phoneNumber = encryptionUtil.decrypt(user.getPhoneNumber());
+        this.id = user.getId();
+        // Customize it here if you need, or not, firstName/lastName/etc
+        this.login = encryptionUtil.decrypt(user.getLogin());
     }
 
     public Long getId() {
@@ -35,6 +54,30 @@ public class UserDTO {
 
     public void setLogin(String login) {
         this.login = login;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
     // prettier-ignore

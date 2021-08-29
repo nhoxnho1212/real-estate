@@ -89,6 +89,10 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
             .antMatchers("/api/register").permitAll()
             .antMatchers("/api/activate").permitAll()
             .antMatchers("/api/account/reset-password/init").permitAll()
+            .antMatchers(HttpMethod.GET, "/api/home-types").permitAll()
+            .antMatchers(HttpMethod.GET, "/api/projects").permitAll()
+            .antMatchers(HttpMethod.GET, "/api/projects/**").permitAll()
+            .antMatchers(HttpMethod.GET, "/api/extras").permitAll()
             .antMatchers("/api/account/reset-password/finish").permitAll()
             .antMatchers("/api/admin/**").hasAuthority(AuthoritiesConstants.ADMIN)
             .antMatchers("/api/**").authenticated()
@@ -102,6 +106,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         .and()
             .apply(securityConfigurerAdapter());
         // @formatter:on
+
+        // desabling Spring Security
+//        http.authorizeRequests().antMatchers("/").permitAll();
     }
 
     private JWTConfigurer securityConfigurerAdapter() {

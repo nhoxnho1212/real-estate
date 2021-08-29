@@ -1,19 +1,25 @@
 package com.ou.ret.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.ou.ret.config.Constants;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.HashSet;
-import java.util.Locale;
 import java.util.Set;
-import javax.persistence.*;
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Size;
-import org.apache.commons.lang3.StringUtils;
+
 import org.hibernate.annotations.BatchSize;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  * A user.
@@ -29,9 +35,7 @@ public class User extends AbstractAuditingEntity implements Serializable {
     private Long id;
 
     @NotNull
-    @Pattern(regexp = Constants.LOGIN_REGEX)
-    @Size(min = 1, max = 50)
-    @Column(length = 50, unique = true, nullable = false)
+    @Column(length = 88, unique = true, nullable = false)
     private String login;
 
     @JsonIgnore
@@ -40,17 +44,15 @@ public class User extends AbstractAuditingEntity implements Serializable {
     @Column(name = "password_hash", length = 60, nullable = false)
     private String password;
 
-    @Size(max = 50)
-    @Column(name = "first_name", length = 50)
+
+    @Column(name = "first_name", length = 88)
     private String firstName;
 
-    @Size(max = 50)
-    @Column(name = "last_name", length = 50)
+
+    @Column(name = "last_name", length = 88)
     private String lastName;
 
-    @Email
-    @Size(min = 5, max = 254)
-    @Column(length = 254, unique = true)
+    @Column(length = 344, unique = true)
     private String email;
 
     @NotNull
@@ -61,8 +63,8 @@ public class User extends AbstractAuditingEntity implements Serializable {
     @Column(name = "lang_key", length = 10)
     private String langKey;
 
-    @Size(max = 256)
-    @Column(name = "image_url", length = 256)
+
+    @Column(name = "image_url", length = 88)
     private String imageUrl;
 
     @Size(max = 20)
@@ -82,11 +84,17 @@ public class User extends AbstractAuditingEntity implements Serializable {
     @ManyToMany
     @JoinTable(
         name = "jhi_user_authority",
-        joinColumns = { @JoinColumn(name = "user_id", referencedColumnName = "id") },
-        inverseJoinColumns = { @JoinColumn(name = "authority_name", referencedColumnName = "name") }
+        joinColumns = {@JoinColumn(name = "user_id", referencedColumnName = "id")},
+        inverseJoinColumns = {@JoinColumn(name = "authority_name", referencedColumnName = "name")}
     )
     @BatchSize(size = 20)
     private Set<Authority> authorities = new HashSet<>();
+
+    @Column(length = 44, unique = true)
+    private String phoneNumber;
+
+    @OneToMany(mappedBy = "homeType")
+    private Set<Project> projects = new HashSet<>();
 
     public Long getId() {
         return id;
@@ -102,7 +110,7 @@ public class User extends AbstractAuditingEntity implements Serializable {
 
     // Lowercase the login before saving it in database
     public void setLogin(String login) {
-        this.login = StringUtils.lowerCase(login, Locale.ENGLISH);
+        this.login = login;
     }
 
     public String getPassword() {
@@ -191,6 +199,22 @@ public class User extends AbstractAuditingEntity implements Serializable {
 
     public void setAuthorities(Set<Authority> authorities) {
         this.authorities = authorities;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public Set<Project> getProjects() {
+        return projects;
+    }
+
+    public void setProjects(Set<Project> projects) {
+        this.projects = projects;
     }
 
     @Override

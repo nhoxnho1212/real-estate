@@ -1,0 +1,27 @@
+{
+  "name": "HomeType",
+  "fields": [
+    {
+      "fieldName": "typeName",
+      "fieldType": "String"
+    }
+  ],
+  "relationships": [
+    {
+      "relationshipType": "one-to-many",
+      "otherEntityName": "project",
+      "otherEntityRelationshipName": "homeType",
+      "relationshipName": "project"
+    }
+  ],
+  "entityTableName": "home_type",
+  "dto": "mapstruct",
+  "pagination": "pagination",
+  "service": "serviceImpl",
+  "jpaMetamodelFiltering": true,
+  "fluentMethods": true,
+  "readOnly": false,
+  "embedded": false,
+  "applications": "*",
+  "changelogDate": "20210717112754"
+}

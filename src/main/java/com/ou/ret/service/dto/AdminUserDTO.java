@@ -1,12 +1,16 @@
 package com.ou.ret.service.dto;
 
-import com.ou.ret.config.Constants;
-import com.ou.ret.domain.Authority;
-import com.ou.ret.domain.User;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 import java.time.Instant;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.validation.constraints.*;
+
+import com.ou.ret.config.Constants;
+import com.ou.ret.domain.Authority;
+import com.ou.ret.domain.User;
 
 /**
  * A DTO representing a user, with his authorities.
@@ -47,6 +51,9 @@ public class AdminUserDTO {
     private Instant lastModifiedDate;
 
     private Set<String> authorities;
+
+    @NotBlank
+    private String phoneNumber;
 
     public AdminUserDTO() {
         // Empty constructor needed for Jackson.
@@ -189,5 +196,13 @@ public class AdminUserDTO {
             ", lastModifiedDate=" + lastModifiedDate +
             ", authorities=" + authorities +
             "}";
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 }
